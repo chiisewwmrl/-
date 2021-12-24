@@ -1,0 +1,21 @@
+# 載入library
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(stringr)
+# start from here
+orders = read.csv('orders.csv')
+orders$orderdate = as.Date(orders$orderdate, origin="2017-01-01")
+# 報告日期
+today <- as.Date('2017-04-11', format='%Y-%m-%d')
+
+# 資料處理
+orders <- dcast(orders, orderId + clientId + gender + orderdate ~ product, value.var='product', fun.aggregate=length)
+
+orders <- orders %>%
+  group_by(clientId) %>%
+  mutate(frequency=n(),
+         recency=as.numeric(today-orderdate)) %>%
+  filter(orderdate==max(orderdate)) %>%
+  filter(orderId==max(orderId)) %>%
+  ungroup()
